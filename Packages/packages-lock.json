@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "com.trisibo.unity-webgl-copy-paste": {
+    "com.trisibo.webgl-copy-paste": {
       "version": "file:WebGLCopyAndPaste",
       "depth": 0,
       "source": "embedded",

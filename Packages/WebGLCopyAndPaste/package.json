@@ -1,7 +1,7 @@
 {
   "name": "com.trisibo.webgl-copy-paste",
   "version": "0.1.0",
-  "displayName": "UnityWebGLCopyPaste",
+  "displayName": "WebGLCopyPaste",
   "description": "Allow Copy and Paste within WebGL Platform",
   "unity": "2021.3"
 }
