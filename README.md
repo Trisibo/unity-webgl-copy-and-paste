@@ -15,10 +15,10 @@ At the moment there is only support for [`InputField`](https://docs.unity3d.com/
 https://github.com/StinkySteak/unity-webgl-copy-and-paste.git?path=Packages/WebGLCopyAndPaste
 ```
 
-2. If you are using [`TMPro.TMP_InputField`](https://docs.unity3d.com/Packages/com.unity.textmeshpro@2.1/api/TMPro.TMP_InputField.html) then navigate from `Tools > WebGLCopyPaste > EnableTMPSupport` or add this definition to the WebGL build 
+2. If you are using Legacy UI Text then navigate from `Tools > WebGLCopyPaste > EnableLegacyUISupport` or add this definition to the WebGL build
 
 ```
-// #define WEBGL_COPY_AND_PASTE_SUPPORT_TEXTMESH_PRO
+// #define WEBGL_COPY_AND_PASTE_LEGACY_UI_SUPPORT
 ```
 
 ## Alternatives
