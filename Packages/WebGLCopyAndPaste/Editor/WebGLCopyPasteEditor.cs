@@ -8,15 +8,15 @@ using UnityEditor.Build;
 
 internal class WebGLCopyPasteEditor : EditorWindow
 {
-    const string Define = "WEBGL_COPY_AND_PASTE_SUPPORT_TEXTMESH_PRO";
+    const string Define = "WEBGL_COPY_AND_PASTE_LEGACY_UI_SUPPORT";
 
-    [MenuItem("Tools/WebGLCopyPaste/EnableTMPSupport")]
-    public static void EnableTMPSupport()
+    [MenuItem("Tools/WebGLCopyPaste/EnableLegacyUISupport")]
+    public static void EnableLegacyUISupport()
     {
-        EnableTMP();
+        EnableLegacyUI();
     }
 
-    private static void EnableTMP()
+    private static void EnableLegacyUI()
     {
         BuildTargetGroup target = BuildTargetGroup.WebGL;
 
