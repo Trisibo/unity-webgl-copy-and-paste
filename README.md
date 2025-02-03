@@ -30,7 +30,7 @@ https://github.com/kou-yeung/WebGLInput
 The plugin has been tested an confirmed working on:
 
 * Edge 120.0.2210.61 (Chromium) on Windows 10, Unity 2022.3.10, 2021.3.25 and 2020.3.18.
-* Firefox 120.0.1 on Windows 10, Unity 2022.3.10, 2021.3.25 and 2020.3.18.
+* Firefox 120.0.1 to 134.0.2 on Windows 10, Unity 6.0.34, 2022.3.22, 2022.3.10, 2021.3.25, 2020.3.18.
 * Safari 16.6 on macOS Ventura 13.6, Unity 2022.3.10.
 * Chrome 118.0.5993.70 on macOS Ventura 13.6, Unity 2022.3.10.
 * Firefox 120.0.1 on macOS Ventura 13.6, Unity 2022.3.10.
@@ -53,6 +53,10 @@ The plugin has been tested an confirmed working on:
      to make whatever parts of the page you want to prevent from being selected.
 
 ## ChangeList
+
+* 0.4.0
+
+  * Made the plugin work when the "WebAssembly.Table" build option is enabled
 
 * 0.3.0
 

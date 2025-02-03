@@ -69,10 +69,14 @@ var WebGLCopyAndPaste = {
         var bufferSize = lengthBytesUTF8(str) + 1;
         var buffer = _malloc(bufferSize);
         stringToUTF8(str, buffer, bufferSize);
-        if (typeof Module !== undefined && Module.dynCall_vi) {
+        if (typeof Module !== "undefined" && typeof Module.dynCall_vi !== "undefined") {
           Module.dynCall_vi(callback, buffer);
-        } else {
+        } else if (typeof Runtime !== "undefined" && typeof Runtime.dynCall !== "undefined") {
           Runtime.dynCall('vi', callback, [buffer]);
+        } else if (typeof getWasmTableEntry !== "undefined") {
+          getWasmTableEntry(callback)(buffer);
+        } else {
+          throw new Error("[WebGLCopyAndPaste]: Couldn't find 'Module.dynCall_vi', 'Runtime.dynCall' or 'getWasmTableEntry'");
         }
       }
 
