@@ -34,11 +34,19 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 using System.Runtime.InteropServices;
-using UnityEngine.Scripting;
 
-[Preserve]
-public class WebGLCopyAndPasteAPI
+public static class WebGLCopyAndPaste
 {
+
+    public static void Init()
+    {
+#if UNITY_WEBGL
+        if (!Application.isEditor)
+        {
+         initWebGLCopyAndPaste(GetClipboard, ReceivePaste);
+        }
+#endif
+    }
 
 #if UNITY_WEBGL
 
@@ -48,16 +56,6 @@ public class WebGLCopyAndPasteAPI
     private static extern void passCopyToBrowser(string str);
 
     delegate void StringCallback( string content );
-
-
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
-    private static void Init()
-    {
-        if ( !Application.isEditor )
-        {
-            initWebGLCopyAndPaste(GetClipboard, ReceivePaste );
-        }
-    }
 
     private static Event CreateKeyboardEventWithControlAndCommandKeysPressed(string baseKey)
     {
@@ -78,18 +76,6 @@ public class WebGLCopyAndPasteAPI
           return;
         }
 
-#if WEBGL_COPY_AND_PASTE_LEGACY_UI_SUPPORT
-        {
-            var input = currentObj.GetComponent<UnityEngine.UI.InputField>();
-            if (input != null)
-            {
-                input.ProcessEvent(CreateKeyboardEventWithControlAndCommandKeysPressed(baseKey));
-                if (forceLabelUpdate)
-                    input.ForceLabelUpdate();
-                return;
-            }
-        }
-#else
         {
           var input = currentObj.GetComponent<TMPro.TMP_InputField>();
           if (input != null) {
@@ -99,7 +85,7 @@ public class WebGLCopyAndPasteAPI
             return;
           }
         }
-#endif
+
         {
           var input = currentObj.GetComponent<UnityEngine.UI.InputField>();
           if (input != null) {
