@@ -100,6 +100,15 @@ public class WebGLCopyAndPasteAPI
           }
         }
 #endif
+        {
+          var input = currentObj.GetComponent<UnityEngine.UI.InputField>();
+          if (input != null) {
+            input.ProcessEvent(CreateKeyboardEventWithControlAndCommandKeysPressed(baseKey));
+            if (forceLabelUpdate)
+                input.ForceLabelUpdate();
+            return;
+          }
+        }
       }
 
       [AOT.MonoPInvokeCallback( typeof(StringCallback) )]
@@ -132,4 +141,4 @@ public class WebGLCopyAndPasteAPI
 
 #endif
 
-    }
+}
