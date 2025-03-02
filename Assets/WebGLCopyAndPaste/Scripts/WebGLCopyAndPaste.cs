@@ -44,7 +44,7 @@ namespace WebGLCopyAndPaste
 {
     /// <summary>
     /// (Use only if "UNITY_WEBGL" is defined)
-    /// Provides copy&paste functionality in WebGL builds.
+    /// Provides copy & paste functionality in WebGL builds.
     /// </summary>
 
     [Preserve]
@@ -53,7 +53,7 @@ namespace WebGLCopyAndPaste
         #region Types
 
 
-        delegate void StringCallback(string content);
+        delegate void StringCallback(string text);
 
 
         #endregion
@@ -68,7 +68,10 @@ namespace WebGLCopyAndPaste
         private static extern void initWebGLCopyAndPaste(StringCallback cutCopyCallback, StringCallback pasteCallback);
 
         [DllImport("__Internal")]
-        private static extern void passCopyToBrowser(string str);
+        private static extern void passCopyToBrowser(string text);
+
+        [DllImport("__Internal")]
+        private static extern void copyTextToClipboard(string text);
 
 
         #endregion
@@ -87,6 +90,25 @@ namespace WebGLCopyAndPaste
             {
                 initWebGLCopyAndPaste(OnCutOrCopyRequested, OnPasteRequested);
             }
+        }
+
+
+
+
+        /// <summary>
+        /// Copies the specified text to the clipboard.
+        /// </summary>
+        /// <param name="text">The text to copy.</param>
+
+        public static void CopyToClipboard(string text)
+        {
+            if (!Application.isEditor)
+            {
+                copyTextToClipboard(text);
+            }
+
+            // This is needed even in a build to ensure "systemCopyBuffer" contains the copied text:
+            GUIUtility.systemCopyBuffer = text;
         }
 
 

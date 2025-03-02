@@ -6,24 +6,24 @@ Here is an attempt to add it back in. No promises that it's perfect 😅
 ![screenshot](https://user-images.githubusercontent.com/234804/85267132-caa04900-b4af-11ea-821f-921cb7f02f34.gif)
 
 At the moment there is only support for [`InputField`](https://docs.unity3d.com/2019.1/Documentation/Manual/script-InputField.html) and
-[`TMPro.TMP_InputField`](https://docs.unity3d.com/Packages/com.unity.textmeshpro@2.1/api/TMPro.TMP_InputField.html)
+[`TMPro.TMP_InputField`](https://docs.unity3d.com/Packages/com.unity.textmeshpro@2.1/api/TMPro.TMP_InputField.html).
 
 ## Instructions
 
 1. Download and add in [this unity package](https://github.com/Trisibo/unity-webgl-copy-and-paste/releases/latest) into your project.
 
 2. If you are using [`TMPro.TMP_InputField`](https://docs.unity3d.com/Packages/com.unity.textmeshpro@2.1/api/TMPro.TMP_InputField.html) then edit `Assets/WebGLCopyAndPaste/Scripts/WebGLCopyAndPaste.cs`
-and uncomment this line
+and uncomment this line:
 
 ```
 // #define WEBGL_COPY_AND_PASTE_SUPPORT_TEXTMESH_PRO
 ```
 
+3. Copying and pasting should work automatically when the user tries to copy/cut/paste from legacy and TextMesh Pro (if enabled) input fields. You can also copy text to the clipboard from script with `WebGLCopyAndPaste.WebGLCopyAndPasteAPI.CopyToClipboard(text)`.
+
 ## Alternatives
 
-This might be better?
-
-https://github.com/kou-yeung/WebGLInput
+This might be better?: https://github.com/kou-yeung/WebGLInput
 
 ## Browsers tested
 
@@ -37,12 +37,12 @@ The plugin has been tested an confirmed working on:
 
 ## Issues
 
-* Non Alphabetic characters
+* Non Alphabetic characters:
 
   See [this thread](https://forum.unity.com/threads/japanese-hiragana-characters-dont-work-in-webgl.356097/). 
   You apparently need to include the fonts in your Unity project.
 
-* Ctrl-A/⌘-A selects other HTML on the page
+* Ctrl-A/⌘-A selects other HTML on the page:
 
   1. Make your own [WebGL template](https://docs.unity3d.com/Manual/webgl-templates.html) that doesn't have
      anything to select. Maybe [this one](https://github.com/greggman/better-unity-webgl-template) though I
@@ -52,47 +52,39 @@ The plugin has been tested an confirmed working on:
      use [`user-select: none;`](https://developer.mozilla.org/en-US/docs/Web/CSS/user-select) in your CSS
      to make whatever parts of the page you want to prevent from being selected.
 
-## ChangeList
+## Changelog
+
+* 1.0.0
+  * Added public "CopyToClipboard" method.
+  * The "WebGLCopyAndPasteAPI" class is now in the "WebGLCopyAndPaste" namespace.
+  * The "WebGLCopyAndPasteAPI" class won't be added (empty) to non-WebGL builds anymore.
+  * Improved the sample, and moved it out of the plugin itself.
 
 * 0.4.0
-
-  * Made the plugin work when the "WebAssembly.Table" build option is enabled
+  * Made the plugin work when the "WebAssembly.Table" build option is enabled.
 
 * 0.3.0
-
-  * Added `Preserve` attribute to `WebGLCopyAndPasteAPI` class, and `AlwaysLinkAssembly` to the assembly,
-    so Unity doesn't strip the code if the plugin is moved to a package
+  * Added `Preserve` attribute to `WebGLCopyAndPasteAPI` class, and `AlwaysLinkAssembly` to the assembly, so Unity doesn't strip the code if the plugin is moved to a package.
 
 * 0.2.1
-
-  * Fixed paste not working on some browsers
-
-  * Fixed labels not being visually updated on some browsers
-
-  * Fixed potential null reference exception when `EventSystem.current` is null
-
-  * Substituted deprecated JavaScript `Window.event`
+  * Fixed paste not working on some browsers.
+  * Fixed labels not being visually updated on some browsers.
+  * Fixed potential null reference exception when `EventSystem.current` is null.
+  * Substituted deprecated JavaScript `Window.event`.
 
 * 0.2.0
-
-  * Fixes for Unity 2021.2
+  * Fixes for Unity 2021.2.
 
 * 0.1.0
-  
-  * Removed the need for MonoBehaviours
-  
-  * Replaced messages with proper callbacks
-
-  * Fixed data storing in `window`
+  * Removed the need for MonoBehaviours.
+  * Replaced messages with proper callbacks.
+  * Fixed data storing in `window`.
 
 * 0.0.2
-
-  * Support cut
-
-  * Support Safari
+  * Support cut.
+  * Support Safari.
 
 * 0.0.1
-
-  * Initial Release
+  * Initial Release.
 
 ## License: BSD-3-Clause
