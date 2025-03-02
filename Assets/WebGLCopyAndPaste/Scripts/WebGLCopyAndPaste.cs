@@ -29,6 +29,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#if UNITY_WEBGL
+
+// To add support for TextMesh Pro input fields,
+// uncomment the following line or add its symbol to the build symbols:
 // #define WEBGL_COPY_AND_PASTE_SUPPORT_TEXTMESH_PRO
 
 using UnityEngine;
@@ -36,97 +40,165 @@ using UnityEngine.EventSystems;
 using System.Runtime.InteropServices;
 using UnityEngine.Scripting;
 
-[Preserve]
-public class WebGLCopyAndPasteAPI
+namespace WebGLCopyAndPaste
 {
+    /// <summary>
+    /// (Use only if "UNITY_WEBGL" is defined)
+    /// Provides copy&paste functionality in WebGL builds.
+    /// </summary>
 
-#if UNITY_WEBGL
-
-    [DllImport("__Internal")]
-    private static extern void initWebGLCopyAndPaste(StringCallback cutCopyCallback, StringCallback pasteCallback);
-    [DllImport("__Internal")]
-    private static extern void passCopyToBrowser(string str);
-
-    delegate void StringCallback( string content );
-
-
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
-    private static void Init()
+    [Preserve]
+    public static class WebGLCopyAndPasteAPI
     {
-        if ( !Application.isEditor )
+        #region Types
+
+
+        delegate void StringCallback(string content);
+
+
+        #endregion
+
+
+
+
+        #region JavaScript methods
+
+
+        [DllImport("__Internal")]
+        private static extern void initWebGLCopyAndPaste(StringCallback cutCopyCallback, StringCallback pasteCallback);
+
+        [DllImport("__Internal")]
+        private static extern void passCopyToBrowser(string str);
+
+
+        #endregion
+
+
+
+
+        /// <summary>
+        /// Performs initialization at runtime.
+        /// </summary>
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
+        private static void Initialize()
         {
-            initWebGLCopyAndPaste(GetClipboard, ReceivePaste );
+            if (!Application.isEditor)
+            {
+                initWebGLCopyAndPaste(OnCutOrCopyRequested, OnPasteRequested);
+            }
         }
+
+
+
+
+        /// <summary>
+        /// Creates a keyboard event with the specified key plus the "Control" and "Command" keys pressed.
+        /// </summary>
+        /// <param name="baseKey">The key to be pressed for the event.</param>
+        /// <returns>The event.</returns>
+
+        private static Event CreateKeyboardEventWithControlAndCommandModifiers(string baseKey)
+        {
+            var keyboardEvent = Event.KeyboardEvent(baseKey);
+            keyboardEvent.control = true;
+            keyboardEvent.command = true;
+            return keyboardEvent;
+        }
+
+
+
+
+        /// <summary>
+        /// Sends and event with the specified key plus the "Control" and "Command" keys pressed
+        /// to the input field of the currently selected <see cref="GameObject"/>, if any.
+        /// </summary>
+        /// <param name="baseKey">The key to send.</param>
+        /// <param name="forceLabelUpdate">Whether to force the label of the input field to update.</param>
+
+        private static void SendKeyboardEventWithControlAndCommandModifiersToSelectedInputField(string baseKey, bool forceLabelUpdate = false)
+        {
+            var currentEventSystem = EventSystem.current;
+            if (currentEventSystem == null)
+            {
+                return;
+            }
+
+            var currentObj = currentEventSystem.currentSelectedGameObject;
+            if (currentObj == null)
+            {
+                return;
+            }
+
+            #if WEBGL_COPY_AND_PASTE_SUPPORT_TEXTMESH_PRO
+            if (currentObj.TryGetComponent<TMPro.TMP_InputField>(out var tmproInputField))
+            {
+                tmproInputField.ProcessEvent(CreateKeyboardEventWithControlAndCommandModifiers(baseKey));
+                if (forceLabelUpdate)
+                {
+                    tmproInputField.ForceLabelUpdate();
+                }
+                return;
+            }
+            #endif
+
+            if (currentObj.TryGetComponent<UnityEngine.UI.InputField>(out var legacyInputField))
+            {
+                legacyInputField.ProcessEvent(CreateKeyboardEventWithControlAndCommandModifiers(baseKey));
+                if (forceLabelUpdate)
+                {
+                    legacyInputField.ForceLabelUpdate();
+                }
+                return;
+            }
+        }
+
+
+
+
+        /// <summary>
+        /// Called when the user requested to cut or copy.
+        /// </summary>
+        /// <param name="key">The key the user used to cut or copy.</param>
+
+        [AOT.MonoPInvokeCallback(typeof(StringCallback))]
+        private static void OnCutOrCopyRequested(string key)
+        {
+            SendKeyboardEventWithControlAndCommandModifiersToSelectedInputField(key);
+            passCopyToBrowser(GUIUtility.systemCopyBuffer);
+        }
+
+
+
+
+        /// <summary>
+        /// Called when the user requested to paste.
+        /// </summary>
+        /// <param name="text">The pasted text.</param>
+
+        [AOT.MonoPInvokeCallback(typeof(StringCallback))]
+        private static void OnPasteRequested(string text)
+        {
+            // Assigning the text to "GUIUtility.systemCopyBuffer" causes it to be automatically pasted on some browsers on the next frame,
+            // but not on all (e.g. Firefox 120.0.1, Windows 10, Unity 2022.3.10).
+            // Using "SendKeyboardEventToSelectedInputField" with the "v" key properly pastes the text on all tested browsers (in the current frame),
+            // but it needs "GUIUtility.systemCopyBuffer" to be set,
+            // and doing so would paste the text twice on browsers in which setting "GUIUtility.systemCopyBuffer" works.
+            // As a workaround, we set "GUIUtility.systemCopyBuffer", then call "SendKeyboardEventToSelectedInputField",
+            // and then set "GUIUtility.systemCopyBuffer" to null;
+            // this prevents the paste that occurs on the next frame, and only the "SendKeyboardEventToSelectedInputField" one is made.
+            // Confirmed to work on:
+            //   - Edge 120.0.2210.61 (Chromium) on Windows 10, Unity 2022.3.10, 2021.3.25 and 2020.3.18.
+            //   - Firefox 120.0.1 on Windows 10, Unity 2022.3.10, 2021.3.25 and 2020.3.18.
+            //   - Safari 16.6 on macOS Ventura 13.6, Unity 2022.3.10.
+            //   - Chrome 118.0.5993.70 on macOS Ventura 13.6, Unity 2022.3.10.
+            //   - Firefox 120.0.1 on macOS Ventura 13.6, Unity 2022.3.10.
+            GUIUtility.systemCopyBuffer = text;
+            SendKeyboardEventWithControlAndCommandModifiersToSelectedInputField("v", true);
+            GUIUtility.systemCopyBuffer = null;
+        }
+
     }
-
-    private static Event CreateKeyboardEventWithControlAndCommandKeysPressed(string baseKey)
-    {
-        var keyboardEvent = Event.KeyboardEvent(baseKey);
-        keyboardEvent.control = true;
-        keyboardEvent.command = true;
-        return keyboardEvent;
-    }
-
-    private static void SendKey(string baseKey, bool forceLabelUpdate = false)
-      {
-        var currentEventSystem = EventSystem.current;
-        if (currentEventSystem == null) {
-            return;
-        }
-        var currentObj = currentEventSystem.currentSelectedGameObject;
-        if (currentObj == null) {
-          return;
-        }
-#if WEBGL_COPY_AND_PASTE_SUPPORT_TEXTMESH_PRO
-        {
-          var input = currentObj.GetComponent<TMPro.TMP_InputField>();
-          if (input != null) {
-            input.ProcessEvent(CreateKeyboardEventWithControlAndCommandKeysPressed(baseKey));
-            if (forceLabelUpdate)
-                input.ForceLabelUpdate();
-            return;
-          }
-        }
-#endif
-        {
-          var input = currentObj.GetComponent<UnityEngine.UI.InputField>();
-          if (input != null) {
-            input.ProcessEvent(CreateKeyboardEventWithControlAndCommandKeysPressed(baseKey));
-            if (forceLabelUpdate)
-                input.ForceLabelUpdate();
-            return;
-          }
-        }
-      }
-
-      [AOT.MonoPInvokeCallback( typeof(StringCallback) )]
-      private static void GetClipboard(string key)
-      {
-        SendKey(key);
-        passCopyToBrowser(GUIUtility.systemCopyBuffer);
-      }
-
-      [AOT.MonoPInvokeCallback( typeof(StringCallback) )]
-      private static void ReceivePaste(string str)
-      {
-        // Assigning the text to "GUIUtility.systemCopyBuffer" causes it to be automatically pasted on some browsers on the next frame,
-        // but not on all (e.g. Firefox 120.0.1, Windows 10, Unity 2022.3.10).
-        // Using "SendKey" with the "v" key properly pastes the text on all tested browsers (in the current frame),
-        // but it needs "GUIUtility.systemCopyBuffer" to be set,
-        // and doing so would paste the text twice on browsers in which setting "GUIUtility.systemCopyBuffer" works.
-        // As a workaround, we set "GUIUtility.systemCopyBuffer", then call "SendKey", and then set "GUIUtility.systemCopyBuffer" to null;
-        // this prevents the paste that occurs on the next frame, and only the "SendKey" one is made.
-        // Confirmed to work on:
-        //   - Edge 120.0.2210.61 (Chromium) on Windows 10, Unity 2022.3.10, 2021.3.25 and 2020.3.18.
-        //   - Firefox 120.0.1 on Windows 10, Unity 2022.3.10, 2021.3.25 and 2020.3.18.
-        //   - Safari 16.6 on macOS Ventura 13.6, Unity 2022.3.10.
-        //   - Chrome 118.0.5993.70 on macOS Ventura 13.6, Unity 2022.3.10.
-        //   - Firefox 120.0.1 on macOS Ventura 13.6, Unity 2022.3.10.
-        GUIUtility.systemCopyBuffer = str;
-        SendKey("v", true);
-        GUIUtility.systemCopyBuffer = null;
-      }
-
-#endif
-
 }
+
+#endif  // UNITY_WEBGL
