@@ -54,10 +54,13 @@ The plugin has been tested an confirmed working on:
 
 ## Changelog
 
+* 1.0.1
+  * Fixed `CopyToClipboard` not working in insecure pages (non-https), or iframes without clipboard permissions, now it should work in most situations (as long as the obsolete JavaScript workaround is not removed from browsers).
+
 * 1.0.0
-  * Added public "CopyToClipboard" method.
-  * The "WebGLCopyAndPasteAPI" class is now in the "WebGLCopyAndPaste" namespace.
-  * The "WebGLCopyAndPasteAPI" class won't be added (empty) to non-WebGL builds anymore.
+  * Added public `CopyToClipboard` method.
+  * The `WebGLCopyAndPasteAPI` class is now in the `WebGLCopyAndPaste` namespace.
+  * The `WebGLCopyAndPasteAPI` class won't be added (empty) to non-WebGL builds anymore.
   * Improved the sample, and moved it out of the plugin itself.
 
 * 0.4.0

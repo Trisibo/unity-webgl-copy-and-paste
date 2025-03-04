@@ -107,14 +107,70 @@ var WebGLCopyAndPaste = {
     };
   },
 
+  
   passCopyToBrowser: function (stringPtr) {
     var fn = typeof UTF8ToString === 'function' ? UTF8ToString : Pointer_stringify;
     WebGLCopyAndPaste.data.clipboardStr = fn(stringPtr);
   },
 
+
   copyTextToClipboard: function (stringPtr) {
     var fn = typeof UTF8ToString === 'function' ? UTF8ToString : Pointer_stringify;
-    navigator.clipboard.writeText(fn(stringPtr));
+    var textToCopy = fn(stringPtr);
+
+    tryCopyWithClipboardAPI(() => tryCopyWithExecCommand(() => console.error("[WebGLCopyAndPaste]: Couldn't find a way to copy text manually")));
+
+    // Tries to use "navigator.clipboard" if it exists and it's a secure context,
+    // as it doesn't work if we are not in "https" pages.
+    function tryCopyWithClipboardAPI(onFailure) {
+      if (navigator.clipboard === undefined || !window.isSecureContext) {
+        onFailure();
+        return;
+      }
+
+      navigator.clipboard.writeText(textToCopy)
+      .catch(error => onFailure());
+    }
+
+    // Tries to use "document.execCommand('copy')", which is obsolete but usually still works.
+    // We create a text area to copy the text to and select from it, then we remove it.
+    function tryCopyWithExecCommand(onFailure) {
+      if (document.execCommand === undefined) {
+        onFailure();
+        return;
+      }
+
+      const prevActiveElement = document.activeElement;
+      
+      const textArea = document.createElement("textarea");
+      textArea.value = textToCopy;
+      textArea.style.position = "fixed";
+      textArea.style.width = 1;
+      textArea.style.height = 1;
+      textArea.style.opacity = 0;
+      document.body.appendChild(textArea);
+      
+      // Trying to copy immediately after selecting doesn't seem to work on all browsers,
+      // so we do it from the "onselect" event, which seems to work fine everywhere.
+      textArea.onselect = () => {
+        try {
+          document.execCommand("copy");
+        } catch (error) {
+          onFailure();
+        }
+        finally {
+          prevActiveElement.focus({ preventScroll: true });
+          textArea.remove();
+        }
+      };
+      
+      textArea.focus({ preventScroll: true });
+      textArea.select();
+    }
+  },
+
+
+  copyTextToClipboardWithExecCommand: function (text) {
   },
 };
 

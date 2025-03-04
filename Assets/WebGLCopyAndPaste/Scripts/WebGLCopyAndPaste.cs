@@ -102,6 +102,8 @@ namespace WebGLCopyAndPaste
 
         public static void CopyToClipboard(string text)
         {
+            //TrisiboTODO: Add a way to know if it succeeded.
+
             if (!Application.isEditor)
             {
                 copyTextToClipboard(text);
